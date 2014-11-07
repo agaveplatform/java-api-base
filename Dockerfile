@@ -59,7 +59,11 @@ ENV X509_CERT_DIR /usr/local/tomcat/.globus
 
 USER root
 
-RUN apt-get install -y bind-utils sendmail sendmail-cf
+RUN apt-get update && apt-get install -y supervisor postfix
+
+ADD supervisor/supervisor.conf /etc/supervisor/supervisord.conf
+ADD install.sh /opt/install.sh
+ADD postfix/postfix.sh /opt/postfix.sh
 
 RUN mkdir -p /usr/local/tomcat/.globus && \
     chown -R tomcat /usr/local/tomcat/.globus && \
@@ -67,10 +71,9 @@ RUN mkdir -p /usr/local/tomcat/.globus && \
     chown -R tomcat /scratch && \
     mkdir -p /usr/local/tomcat/logs && \
     chown -R tomcat /usr/local/tomcat/logs && \
-    chmod 777 /usr/local/tomcat/logs
+    chmod 777 /usr/local/tomcat/logs && \
+    touch /var/log/mail.log
 
-USER tomcat
-
-VOLUME [ "/usr/local/tomcat/logs" ]
-EXPOSE 8080 8443
-CMD ["catalina.sh", "run"]
+VOLUME [ "/usr/local/supervisor/logs" ]
+EXPOSE 8080
+CMD /usr/bin/supervisord -c /etc/supervisor/supervisord.conf

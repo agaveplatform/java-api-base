@@ -45,9 +45,9 @@
         timeBetweenEvictionRunsMillis="60000"
         poolPreparedStatements="true"
         username="agaveuser"
-        password="password" 
+        password="password"
         driverClassName="com.mysql.jdbc.Driver"
-        url="jdbc:mysql://mysql:3306/agave-api?zeroDateTimeBehavior=convertToNull&amp;sessionVariables=FOREIGN_KEY_CHECKS=0&amp;relaxAutoCommit=true"
+        url="jdbc:mysql://mysql:3306/agave?zeroDateTimeBehavior=convertToNull&amp;sessionVariables=FOREIGN_KEY_CHECKS=0&amp;relaxAutoCommit=true"
         useUnicode="true"
         characterEncoding="utf-8"
         characterSetResults="utf8"/>
