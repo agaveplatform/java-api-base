@@ -44,10 +44,10 @@
         maxWait="5000"
         timeBetweenEvictionRunsMillis="60000"
         poolPreparedStatements="true"
-        username="agaveuser"
-        password="password"
+        username="%MYSQL_USERNAME%"
+        password="%MYSQL_PASSWORD%"
         driverClassName="com.mysql.jdbc.Driver"
-        url="jdbc:mysql://mysql:3306/agave?zeroDateTimeBehavior=convertToNull&amp;sessionVariables=FOREIGN_KEY_CHECKS=0&amp;relaxAutoCommit=true"
+        url="jdbc:mysql://%MYSQL_HOST%:%MYSQL_PORT%/%MYSQL_DATABASE%?zeroDateTimeBehavior=convertToNull&amp;sessionVariables=FOREIGN_KEY_CHECKS=0&amp;relaxAutoCommit=true"
         useUnicode="true"
         characterEncoding="utf-8"
         characterSetResults="utf8"/>
