@@ -55,7 +55,8 @@ ENV DEBIAN_FRONTEND noninteractive
 RUN mkdir -p /usr/local/tomcat/.globus && \
     mkdir -p /scratch && \
     mkdir -p /usr/local/tomcat/logs && \
-    cp /usr/share/zoneinfo/America/Chicago /etc/localtime
+    cp /usr/share/zoneinfo/America/Chicago /etc/localtime && \
+    mv /usr/local/tomcat/webapps/ROOT /usr/local/tomcat/webapps/TCMgr
 
 # Install Tomcat config files for JNDI and better file upload/throughput
 ADD tomcat /usr/local/tomcat/
