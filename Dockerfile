@@ -62,6 +62,7 @@ RUN mkdir -p /usr/local/tomcat/.globus && \
 ADD tomcat /usr/local/tomcat/
 ADD docker_entrypoint.sh /docker_entrypoint.sh
 
+ENV TERM xterm
 ENV X509_CERT_DIR /usr/local/tomcat/.globus
 ENV CATALINA_OPTS "-Djsse.enableCBCProtection=false"
 
