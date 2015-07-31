@@ -1,6 +1,6 @@
 ## Agave Java API Base Image
 
-This is the base image used to create the Agave Java API Images. It has Tomcat 6 and Oracle JDK7 installed and configured with a JNDI connection to a linked MySQL server at host `mysql` and port `3306`.
+This is the base image used to create the Agave Java API Images. It has Tomcat 6 and Oracle JDK7 installed and configured with a JNDI connection to a [MySQL](https://registry.hub.docker.com/u/library/mysql) or [MariaDB](https://registry.hub.docker.com/u/library/mariadb) container defined in the environment and/or linked at runtime. CORS support is implicit in this image, so all webapps extending it will have proper support out of the box.
 
 ## What is the Agave Platform?
 
@@ -35,36 +35,52 @@ This image can be used as a base image for all Java APIs. Simply create a Docker
 
 Tomcat has a preconfigured JNDI connection with the following configuration:
 
-  <Resource name="jdbc/iplant_io"
+```xml
+<Resource name="jdbc/iplant_io"
         auth="Container"
-        type="javax.sql.DataSource"
-        factory="org.apache.tomcat.dbcp.dbcp.BasicDataSourceFactory"
-        removeAbandoned="true"
-        removeAbandonedTimeout="30"
-        validationQuery="SELECT 1"
-        loginTimeout="10"
-        maxActive="30"
-        maxIdle="5"
-        maxWait="5000"
-        timeBetweenEvictionRunsMillis="60000"
-        poolPreparedStatements="true"
-        username="agaveuser"
-        password="password"
+        username="%MYSQL_USERNAME%"
+        password="%MYSQL_PASSWORD%"
         driverClassName="com.mysql.jdbc.Driver"
-        url="jdbc:mysql://mysql:3306/agave-api?zeroDateTimeBehavior=convertToNull&amp;sessionVariables=FOREIGN_KEY_CHECKS=0&amp;relaxAutoCommit=true"
+        url="jdbc:mysql://%MYSQL_HOST%:%MYSQL_PORT%/%MYSQL_DATABASE%"
+        connectionProperties="zeroDateTimeBehavior=convertToNull;sessionVariables=FOREIGN_KEY_CHECKS=0;autocommit=0"
+        type="javax.sql.DataSource"
+        factory="org.apache.tomcat.jdbc.pool.DataSourceFactory"
+
+        suspectTimeout="60"
+        abandonWhenPercentageFull="50"
+        logAbandonded="true"
+        validationQuery="SELECT 1"
+        validationInterval="30000"
+
+        maxActive="50"
+        minIdle="10"
+        minEvictableIdleTimeMillis="30000"
+        timeBetweenEvictionRunsMillis="30000"
+
+        jmxEnabled="true"
+        jdbcInterceptors="org.apache.tomcat.jdbc.pool.interceptor.ConnectionState(autocommit=false,defaultAutoCommit=false);
+            org.apache.tomcat.jdbc.pool.interceptor.StatementFinalizer;
+            org.apache.tomcat.jdbc.pool.interceptor.ResetAbandonedTimer"
+
         useUnicode="true"
         characterEncoding="utf-8"
         characterSetResults="utf8"/>
+```
 
-The mysql driver is already present in the image.
+The mysql and tomcat jdbc drivers are already present in the image. If not specified in the container environment, the tokens will be replaced with the values of a trusted [MySQL](https://registry.hub.docker.com/u/library/mysql) or [MariaDB](https://registry.hub.docker.com/u/library/mariadb) container linked at runtime.
 
 
 ### Running this image
 
-This image extends the trusted php:5.4-apache image.
+When running in production, both the access and application logs will stream to standard out so they can be access via the Docker logs facility by default.
 
-    > docker run -d -h agave.example.com         	  \
-               -p 8888:8080                   		  \ # Tomcat
-               --name apache-php
-               -v `pwd`/logs:/usr/local/tomcat/logs \ # mount the log directory
-               agaveapi/java-api-base
+```
+docker run -h docker.example.com
+           -p 80:8080 \
+           --name some-api \
+           -e MYSQL_USERNAME=agaveuser \
+           -e MYSQL_PASSWORD=password \
+           -e MYSQL_HOST=mysql \
+           -e MYSQL_PORT=3306 \
+           agaveapi/java-api-base:latest
+```

@@ -32,27 +32,33 @@
     <Valve className="org.apache.catalina.valves.CometConnectionManagerValve" />
     -->
   <Resource name="jdbc/iplant_io"
-        auth="Container"
-        type="javax.sql.DataSource"
-        factory="org.apache.tomcat.dbcp.dbcp.BasicDataSourceFactory"
-        validationQuery="SELECT 1"
-        maxAge="180000"
-        testOnBorrow="true"
-        testWhileIdle="true"
-        validationInterval="15000"
-        maxActive="150"
-        maxIdle="15"
-        maxWait="30000"
-        timeBetweenEvictionRunsMillis="15000"
-        poolPreparedStatements="true"
-        removeAbandoned="true"
-        removeAbandonedTimeout="60"
-        username="%MYSQL_USERNAME%"
-        password="%MYSQL_PASSWORD%"
-        driverClassName="com.mysql.jdbc.Driver"
-        url="jdbc:mysql://%MYSQL_HOST%:%MYSQL_PORT%/%MYSQL_DATABASE%?zeroDateTimeBehavior=convertToNull&amp;sessionVariables=FOREIGN_KEY_CHECKS=0&amp;relaxAutoCommit=true"
-        useUnicode="true"
-        characterEncoding="utf-8"
-        characterSetResults="utf8"/>
+          auth="Container"
+          username="%MYSQL_USERNAME%"
+          password="%MYSQL_PASSWORD%"
+          driverClassName="com.mysql.jdbc.Driver"
+          url="jdbc:mysql://%MYSQL_HOST%:%MYSQL_PORT%/%MYSQL_DATABASE%"
+          connectionProperties="zeroDateTimeBehavior=convertToNull;sessionVariables=FOREIGN_KEY_CHECKS=0;autocommit=0"
+          type="javax.sql.DataSource"
+          factory="org.apache.tomcat.jdbc.pool.DataSourceFactory"
+
+          suspectTimeout="60"
+          abandonWhenPercentageFull="50"
+          logAbandonded="true"
+          validationQuery="SELECT 1"
+          validationInterval="30000"
+
+          maxActive="50"
+          minIdle="10"
+          minEvictableIdleTimeMillis="30000"
+          timeBetweenEvictionRunsMillis="30000"
+
+          jmxEnabled="true"
+          jdbcInterceptors="org.apache.tomcat.jdbc.pool.interceptor.ConnectionState(autocommit=false,defaultAutoCommit=false);
+              org.apache.tomcat.jdbc.pool.interceptor.StatementFinalizer;
+              org.apache.tomcat.jdbc.pool.interceptor.ResetAbandonedTimer"
+
+          useUnicode="true"
+          characterEncoding="utf-8"
+          characterSetResults="utf8"/>
 
 </Context>
