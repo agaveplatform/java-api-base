@@ -37,22 +37,26 @@
           password="%MYSQL_PASSWORD%"
           driverClassName="com.mysql.jdbc.Driver"
           url="jdbc:mysql://%MYSQL_HOST%:%MYSQL_PORT%/%MYSQL_DATABASE%"
-          connectionProperties="zeroDateTimeBehavior=convertToNull;sessionVariables=FOREIGN_KEY_CHECKS=0;autocommit=0"
+          connectionProperties="zeroDateTimeBehavior=convertToNull;sessionVariables=FOREIGN_KEY_CHECKS=0;relaxAutoCommit=true"
           type="javax.sql.DataSource"
           factory="org.apache.tomcat.jdbc.pool.DataSourceFactory"
 
-          suspectTimeout="60"
+          removeAbandoned="true"
+          removeAbandonedTimeout="60"
           abandonWhenPercentageFull="50"
           logAbandonded="true"
+          testOnBorrow="true"
           validationQuery="SELECT 1"
           validationInterval="30000"
 
-          maxActive="50"
-          minIdle="10"
+          maxActive="30"
+          maxIdle="15"
+          minIdle="5"
+          initialSize="5"
           minEvictableIdleTimeMillis="30000"
           timeBetweenEvictionRunsMillis="30000"
 
-          jmxEnabled="true"
+          jmxEnabled="false"
           jdbcInterceptors="org.apache.tomcat.jdbc.pool.interceptor.ConnectionState(autocommit=false,defaultAutoCommit=false);
               org.apache.tomcat.jdbc.pool.interceptor.StatementFinalizer;
               org.apache.tomcat.jdbc.pool.interceptor.ResetAbandonedTimer"
