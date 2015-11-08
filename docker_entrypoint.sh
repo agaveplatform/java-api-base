@@ -43,5 +43,14 @@ do
   sed -i -e "s/%MYSQL_DATABASE%/$MYSQL_DATABASE/" $i
 done
 
+# Enable NewRelic if a valid key was passed in
+if [[ -n "$NEWRELIC_LICENSE_KEY" ]]; then
+  sed -i -e "s/%NEWRELIC_LICENSE_KEY%/$NEWRELIC_LICENSE_KEY/" /etc/newrelic/nrsysmond.cfg
+  sed -i -e "s/%AGAVE_APP_NAME%/$AGAVE_APP_NAME/" /etc/newrelic/nrsysmond.cfg
+
+  export JAVA_OPTS="$JAVA_OPTS -javaagent:/newrelic/newrelic.jar"
+fi
+
+
 #service rsyslog start
 exec "$@"
