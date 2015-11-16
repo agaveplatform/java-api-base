@@ -22,9 +22,9 @@
     <WatchedResource>WEB-INF/web.xml</WatchedResource>
 
     <!-- Uncomment this to disable session persistence across Tomcat restarts -->
-    <!--
     <Manager pathname="" />
-    -->
+    
+    <JarScanner scanClassPath="false" />
 
     <!-- Uncomment this to enable Comet connection tacking (provides events
          on session expiration as well as webapp lifecycle) -->
@@ -41,7 +41,7 @@
           type="javax.sql.DataSource"
           factory="org.apache.tomcat.jdbc.pool.DataSourceFactory"
 
-          removeAbandoned="true"
+          removeAbandonedOnBorrow="true"
           removeAbandonedTimeout="60"
           abandonWhenPercentageFull="50"
           logAbandonded="true"
@@ -49,7 +49,7 @@
           validationQuery="SELECT 1"
           validationInterval="30000"
 
-          maxActive="30"
+          maxTotal="30"
           maxIdle="15"
           minIdle="5"
           initialSize="5"
