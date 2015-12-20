@@ -86,23 +86,25 @@ fi
 #   cp /etc/apache2/conf.d/ssl.conf /etc/apache2/conf.d/ssl.conf.bak
 # fi
 
-KEY=/etc/ssl/private/server.key
-DOMAIN=$(hostname)
-export PASSPHRASE=$(cat /dev/urandom | tr -cd 'a-f0-9' | head -c 16)
-SUBJ="
-C=US
-ST=Texas
-O=University of Texas
-localityName=Austin
-commonName=$DOMAIN
-organizationalUnitName=TACC
-emailAddress=admin@$DOMAIN
-"
-openssl genrsa -des3 -out /etc/ssl/private/server.key -passout env:PASSPHRASE 2048
-openssl req -new -batch -subj "$(echo -n "$SUBJ" | tr "\n" "/")" -key $KEY -out /tmp/$DOMAIN.csr -passin env:PASSPHRASE
-cp $KEY $KEY.orig
-openssl rsa -in $KEY.orig -out $KEY -passin env:PASSPHRASE
-openssl x509 -req -days 365 -in /tmp/$DOMAIN.csr -signkey $KEY -out /etc/ssl/certs/server.crt
+if [[ -z "$SSL_KEY" ]]; then
+	KEY=/etc/ssl/private/server.key
+	DOMAIN=$(hostname)
+	export PASSPHRASE=$(cat /dev/urandom | tr -cd 'a-f0-9' | head -c 16)
+	SUBJ="
+	C=US
+	ST=Texas
+	O=University of Texas
+	localityName=Austin
+	commonName=$DOMAIN
+	organizationalUnitName=TACC
+	emailAddress=admin@$DOMAIN
+	"
+	openssl genrsa -des3 -out /etc/ssl/private/server.key -passout env:PASSPHRASE 2048
+	openssl req -new -batch -subj "$(echo -n "$SUBJ" | tr "\n" "/")" -key $KEY -out /tmp/$DOMAIN.csr -passin env:PASSPHRASE
+	cp $KEY $KEY.orig
+	openssl rsa -in $KEY.orig -out $KEY -passin env:PASSPHRASE
+	openssl x509 -req -days 365 -in /tmp/$DOMAIN.csr -signkey $KEY -out /etc/ssl/certs/server.crt
+fi
 
 #export SSL_CERT=we_done_switched_the_ssl_cert
 if [[ -n "$SSL_CERT" ]]; then
@@ -112,24 +114,31 @@ fi
 
 # export SSL_KEY=we_done_switched_the_ssl_key
 if [[ -n "$SSL_KEY" ]]; then
-  sed -i 's#^SSLCertificateKeyFile=".*#SSLCertificateKeyFile="'$SSL_KEY'#g' /opt/tomcat/conf/server.xml
+  sed -i 's#SSLCertificateKeyFile=".*#SSLCertificateKeyFile="'$SSL_KEY'"#g' /opt/tomcat/conf/server.xml
 fi
 # grep "we_done_switched_the_ssl_key" /etc/apache2/conf.d/ssl.conf
 
-# export SSL_CA_CHAIN=we_done_switched_the_cert_chain
-if [[ -n "$SSL_CA_CHAIN" ]]; then
-  sed -i 's#^\#SSLCertificateChainFile=".*#SSLCertificateChainFile="'$SSL_CA_CHAIN'"#g' /opt/tomcat/conf/server.xml
-fi
+# # export SSL_CA_CHAIN=we_done_switched_the_cert_chain
+# if [[ -n "$SSL_CA_CHAIN" ]]; then
+#   sed -i 's#\#SSLCertificateChainFile=".*#SSLCertificateChainFile="'$SSL_CA_CHAIN'"#g' /opt/tomcat/conf/server.xml
+# fi
 # grep "we_done_switched_the_cert_chain" /etc/apache2/conf.d/ssl.conf
 
 # export SSL_CA_CERT=we_done_switched_the_ca_cert
 if [[ -n "$SSL_CA_CERT" ]]; then
-  sed -i 's#^\#SSLCACertificateFile=".*#SSLCACertificateFile="'$SSL_CA_CERT'"#g' /opt/tomcat/conf/server.xml
+  sed -i 's#SSLCACertificatePath=".*#SSLCACertificatePath="'$SSL_CA_CERT'"#g' /opt/tomcat/conf/server.xml
 fi
 # grep "we_done_switched_the_ca_cert" /etc/apache2/conf.d/ssl.conf
 
 # start ntpd because clock skew is astoundingly real
 ntpd -d -p pool.ntp.org
+
+# unpack the zip ourselves. This saves about a minute on startup time
+WAR_NAME=$(ls $CATALINA_HOME/webapps/*.war)
+APP_NAME=$(basename $WAR_NAME | cut -d'.' -f1)
+echo "expanding war ${WAR_NAME}..."
+unzip -q -o -d "$CATALINA_HOME/webapps/$APP_NAME" "$WAR_NAME"
+rm -f ${WAR_NAME}
 
 # finally, run the command passed into the container
 exec "$@"

@@ -112,8 +112,8 @@
                     disableUploadTimeout="true"
                     enableLookups="false"
                     SSLCertificateFile="/etc/ssl/certs/server.crt"
-                    SSLCertificateKeyFile="/etc/ssl/private/server.key"
-                    SSLCACertificatePath="/etc/ssl/certs"
+                    SSLCertificateKeyFile="/etc/ssl/private/server.pem"
+                    SSLCACertificatePath="/usr/local/ssl/ca-bundle-client.crt"
                     SSLVerifyClient="optional"
                     SSLProtocol="TLSv1+TLSv1.1+TLSv1.2"/>
 

@@ -61,6 +61,11 @@ RUN addgroup -g 50 -S tomcat && \
 		#cd newrelic && \
 		#java -jar newrelic.jar install
 
+# Delete the ROOT, manager, and host-manager app
+RUN rm -rf /opt/tomcat/webapps/manager /opt/tomcat/webapps/host-manager /opt/tomcat/webapps/ROOT /opt/tomcat/webapps/*.war && \
+    mkdir /opt/tomcat/webapps/ROOT
+
+
 # Install Tomcat config files for JNDI and better file upload/throughput
 ADD tomcat/conf/* /opt/tomcat/conf/
 ADD tomcat/lib/*.jar /opt/tomcat/lib/
@@ -68,7 +73,7 @@ ADD tomcat/lib/*.jar /opt/tomcat/lib/
 ADD docker_entrypoint.sh /docker_entrypoint.sh
 
 ENV X509_CERT_DIR /opt/tomcat/.globus
-ENV CATALINA_OPTS "-Duser.timezone=America/Chicago -Djsse.enableCBCProtection=false -Djava.awt.headless=true -Dfile.encoding=UTF-8 -server -Xms1024m -Xmx4096m -XX:NewSize=256m -XX:MaxNewSize=256m -XX:PermSize=256m -XX:MaxPermSize=512m -XX:+DisableExplicitGC"
+ENV CATALINA_OPTS "-Duser.timezone=America/Chicago -Djsse.enableCBCProtection=false -Djava.awt.headless=true -Dfile.encoding=UTF-8 -server -Xms1024m -Xmx4096m -XX:NewSize=256m -XX:MaxNewSize=256m -XX:PermSize=256m -XX:MaxPermSize=512m -XX:+DisableExplicitGC -Djava.security.egd=file:/dev/./urandom"
 ENV PATH $PATH:/opt/tomcat/bin
 
 WORKDIR /opt/tomcat
