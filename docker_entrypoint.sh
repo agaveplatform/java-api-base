@@ -137,6 +137,7 @@ ntpd -d -p pool.ntp.org
 WAR_NAME=$(ls $CATALINA_HOME/webapps/*.war)
 APP_NAME=$(basename $WAR_NAME | cut -d'.' -f1)
 echo "expanding war ${WAR_NAME}..."
+mkdir "$CATALINA_HOME/webapps/$APP_NAME"
 unzip -q -o -d "$CATALINA_HOME/webapps/$APP_NAME" "$WAR_NAME"
 rm -f ${WAR_NAME}
 
