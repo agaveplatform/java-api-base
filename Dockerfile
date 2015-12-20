@@ -47,7 +47,8 @@ RUN addgroup -g 50 -S tomcat && \
     rm -rf /opt/tomcat/bin/tomcat-native-*-src && \
     apk del apr-dev openssl-dev build-base && rm -f /var/cache/apk/* && \
     rm -rf /apache-ant-1.9.6* && \
-    ln -s /lib/libuuid.so.1 /usr/lib/libuuid.so.1
+    ln -s /lib/libuuid.so.1 /usr/lib/libuuid.so.1 && \
+    rm -rf /opt/tomcat/webapps/*
     #apk --update add libuuid && rm -f /var/cache/apk/*
     # && \
     # ln -s /usr/lib/libuuid.so /usr/lib/libuuid.so.1
@@ -60,11 +61,6 @@ RUN addgroup -g 50 -S tomcat && \
 		#rm /tmp/newrelic-jar.zip && \
 		#cd newrelic && \
 		#java -jar newrelic.jar install
-
-# Delete the ROOT, manager, and host-manager app
-RUN rm -rf /opt/tomcat/webapps/manager /opt/tomcat/webapps/host-manager /opt/tomcat/webapps/ROOT /opt/tomcat/webapps/*.war && \
-    mkdir /opt/tomcat/webapps/ROOT
-
 
 # Install Tomcat config files for JNDI and better file upload/throughput
 ADD tomcat/conf/* /opt/tomcat/conf/
