@@ -69,7 +69,7 @@ ADD tomcat/lib/*.jar /opt/tomcat/lib/
 ADD docker_entrypoint.sh /docker_entrypoint.sh
 
 ENV X509_CERT_DIR /opt/tomcat/.globus
-ENV CATALINA_OPTS "-Duser.timezone=America/Chicago -Djsse.enableCBCProtection=false -Djava.awt.headless=true -Dfile.encoding=UTF-8 -server -Xms1024m -Xmx4096m -XX:NewSize=256m -XX:MaxNewSize=256m -XX:PermSize=256m -XX:MaxPermSize=512m -XX:+DisableExplicitGC -Djava.security.egd=file:/dev/./urandom"
+ENV CATALINA_OPTS "-Duser.timezone=America/Chicago -Djsse.enableCBCProtection=false -Djava.awt.headless=true -Dfile.encoding=UTF-8 -server -Xms512m -Xmx1024m -XX:+DisableExplicitGC -Djava.security.egd=file:/dev/./urandom"
 ENV PATH $PATH:/opt/tomcat/bin
 
 WORKDIR /opt/tomcat
