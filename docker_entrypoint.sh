@@ -87,23 +87,22 @@ fi
 # fi
 
 if [[ -z "$SSL_KEY" ]]; then
-	KEY=/etc/ssl/private/server.key
-	DOMAIN=$(hostname)
+	export KEY=/etc/ssl/private/server.key
+	export DOMAIN=$(hostname)
 	export PASSPHRASE=$(cat /dev/urandom | tr -cd 'a-f0-9' | head -c 16)
-	SUBJ="
-	C=US
-	ST=Texas
-	O=University of Texas
-	localityName=Austin
-	commonName=$DOMAIN
-	organizationalUnitName=TACC
-	emailAddress=admin@$DOMAIN
-	"
+	export SUBJ="
+C=US
+ST=Texas
+O=University of Texas
+localityName=Austin
+commonName=$DOMAIN
+organizationalUnitName=TACC
+emailAddress=admin@$DOMAIN"
 	openssl genrsa -des3 -out /etc/ssl/private/server.key -passout env:PASSPHRASE 2048
-	openssl req -new -batch -subj "$(echo -n "$SUBJ" | tr "\n" "/")" -key $KEY -out /tmp/$DOMAIN.csr -passin env:PASSPHRASE
+	openssl req -new -batch -subj "$(echo -n "$SUBJ" | tr "\n" "/")" -key $KEY -out /etc/ssl/certs/$DOMAIN.csr -passin env:PASSPHRASE
 	cp $KEY $KEY.orig
 	openssl rsa -in $KEY.orig -out $KEY -passin env:PASSPHRASE
-	openssl x509 -req -days 365 -in /tmp/$DOMAIN.csr -signkey $KEY -out /etc/ssl/certs/server.crt
+	openssl x509 -req -days 365 -in /etc/ssl/certs/$DOMAIN.csr -signkey $KEY -out /etc/ssl/certs/server.crt
 fi
 
 #export SSL_CERT=we_done_switched_the_ssl_cert
@@ -141,12 +140,16 @@ mkdir -p "$IPLANT_SERVER_TEMP_DIR"
 ntpd -d -p pool.ntp.org
 
 # unpack the zip ourselves. This saves about a minute on startup time
-WAR_NAME=$(ls $CATALINA_HOME/webapps/*.war)
-APP_NAME=$(basename $WAR_NAME | cut -d'.' -f1)
-echo "expanding war ${WAR_NAME}..."
-mkdir "$CATALINA_HOME/webapps/$APP_NAME"
-unzip -q -o -d "$CATALINA_HOME/webapps/$APP_NAME" "$WAR_NAME"
-rm -f ${WAR_NAME}
+WAR_NAME=$(ls $CATALINA_HOME/webapps/*.war 2> /dev/null)
+if [[ -n "$WAR_NAME" ]]; then
+	APP_NAME=$(basename $WAR_NAME | cut -d'.' -f1)
+	echo "expanding war ${WAR_NAME}..."
+	mkdir "$CATALINA_HOME/webapps/$APP_NAME"
+	unzip -q -o -d "$CATALINA_HOME/webapps/$APP_NAME" "$WAR_NAME"
+	rm -f ${WAR_NAME}
+else
+	echo "No war found in webapps directory."
+fi
 
 # finally, run the command passed into the container
 exec "$@"

@@ -112,8 +112,8 @@
                     disableUploadTimeout="true"
                     enableLookups="false"
                     SSLCertificateFile="/etc/ssl/certs/server.crt"
-                    SSLCertificateKeyFile="/etc/ssl/private/server.pem"
-                    SSLCACertificatePath="/usr/local/ssl/ca-bundle-client.crt"
+                    SSLCertificateKeyFile="/etc/ssl/private/server.key"
+                    SSLCACertificatePath="/etc/ssl/certs/ca-certificates.crt"
                     SSLVerifyClient="optional"
                     SSLProtocol="TLSv1+TLSv1.1+TLSv1.2"/>
 
@@ -168,8 +168,9 @@
         <!-- Access log processes all example.
              Documentation at: /docs/config/valve.html -->
         <Valve className="org.apache.catalina.valves.AccessLogValve" directory="logs"
-               prefix="localhost_access_log" suffix=".txt"
-               pattern="%h %l %u %t &quot;%r&quot; %s %b" />
+               prefix="access" renameOnRotate="true"
+               pattern="[%{UNIQUE_ID}i] %a %l %u %t &quot;%r&quot; %s %b &quot;%{Referer}i&quot; &quot;%{User-Agent}i&quot;"
+               />
 
       </Host>
     </Engine>
