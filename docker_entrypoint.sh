@@ -71,15 +71,6 @@ else
 fi
 
 
-# Enable NewRelic if a valid key was passed in
-if [[ -n "$NEWRELIC_LICENSE_KEY" ]]; then
-  sed -i -e "s/%NEWRELIC_LICENSE_KEY%/$NEWRELIC_LICENSE_KEY/" /etc/newrelic/nrsysmond.cfg
-  if [[ -n "$NEWRELIC_APP_NAME" ]]; then
-    sed -i -e "s/%AGAVE_APP_NAME%/$AGAVE_APP_NAME/" /etc/newrelic/nrsysmond.cfg
-  fi
-  export JAVA_OPTS="$JAVA_OPTS -javaagent:/newrelic/newrelic.jar"
-fi
-
 # if [[ -e /etc/apache2/conf.d/ssl.conf.bak ]]; then
 #   cp /etc/apache2/conf.d/ssl.conf.bak /etc/apache2/conf.d/ssl.conf
 # else
@@ -149,6 +140,32 @@ if [[ -n "$WAR_NAME" ]]; then
 	rm -f ${WAR_NAME}
 else
 	echo "No war found in webapps directory."
+fi
+
+# Enable NewRelic if a valid key was passed in. We move this to the bottom so
+# we can default to the service manifest if no app name was provided.
+if [[ -n "$NEWRELIC_LICENSE_KEY" ]]; then
+  sed -i -e "s/%NEWRELIC_LICENSE_KEY%/$NEWRELIC_LICENSE_KEY/" $CATALINA_HOME/newrelic/newrelic.yml
+
+	if [[ -z "$AGAVE_APP_NAME" ]]; then
+		export $(find $CATALINA_HOME/webapps/*/META-INF/maven -name pom.properties -print0 | xargs grep "artifactId")
+		AGAVE_APP_NAME="Agave $(echo $artifactId | sed -e 's#-# #' | awk '{print toupper($0)}')"
+  fi
+	sed -i -e "s/%AGAVE_APP_NAME%/$AGAVE_APP_NAME/" $CATALINA_HOME/newrelic/newrelic.yml
+
+	if [[ -z "$NEWRELIC_ENVIRONMENT" ]]; then
+		if [[ -n "$(echo $HOSTNAME | grep 'prod')" ]]; then
+			AGAVE_ENVIRONMENT=Production
+		elif [[ -n "$(echo $HOSTNAME | grep 'staging')" ]]; then
+			AGAVE_ENVIRONMENT=Staging
+		else
+			AGAVE_ENVIRONMENT=Development
+		fi
+	fi
+	sed -i -e "s/%AGAVE_ENVIRONMENT%/$AGAVE_ENVIRONMENT/" $CATALINA_HOME/newrelic/newrelic.yml
+
+	export CATALINA_OPTS="$CATALINA_OPTS -javaagent:$CATALINA_HOME/newrelic/newrelic.jar"
+
 fi
 
 # finally, run the command passed into the container

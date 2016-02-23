@@ -82,22 +82,24 @@ RUN addgroup -g 50 -S tomcat && \
 # Uncomment for newrelic support...should install logrotate as well or disable logging.
 #RUN  sysctl -p && \
 #     apk install curl unzip - && \
-#     cd /opt/tomcat/ && \
-#     curl "http://download.newrelic.com/newrelic/java-agent/newrelic-agent/current/newrelic-java.zip" && \
-#     unzip newrelic-jar.zip && \
-#     rm /tmp/newrelic-jar.zip && \
-#     cd newrelic && \
-#     java -jar newrelic.jar install
+RUN cd /opt/tomcat/ && \
+    curl -O "http://download.newrelic.com/newrelic/java-agent/newrelic-agent/current/newrelic-java.zip" && \
+    unzip newrelic-java.zip && \
+    rm newrelic-java.zip
+    # && cd newrelic && \
+    # java -jar newrelic.jar install
 
 # Install Tomcat config files for JNDI and better file upload/throughput
 ADD tomcat/conf/* /opt/tomcat/conf/
 ADD tomcat/lib/log4j.properties /opt/tomcat/lib/log4j.properties
 ADD docker_entrypoint.sh /docker_entrypoint.sh
-#ADD newrelic.yml /newrelic/newrelic.yml
+ADD newrelic.yml /opt/tomcat/newrelic/newrelic.yml
+
 
 ENV X509_CERT_DIR /opt/tomcat/.globus
 ENV CATALINA_OPTS "-Duser.timezone=America/Chicago -Djsse.enableCBCProtection=false -Djava.awt.headless=true -Dfile.encoding=UTF-8 -server -Xms512m -Xmx1024m -XX:+DisableExplicitGC -Djava.security.egd=file:/dev/./urandom"
 ENV PATH $PATH:/opt/tomcat/bin
+
 
 WORKDIR /opt/tomcat
 
