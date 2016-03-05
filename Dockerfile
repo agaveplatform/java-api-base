@@ -95,6 +95,9 @@ ADD tomcat/lib/log4j.properties /opt/tomcat/lib/log4j.properties
 ADD docker_entrypoint.sh /docker_entrypoint.sh
 ADD newrelic.yml /opt/tomcat/newrelic/newrelic.yml
 
+# Add JCE Unlimited strength policy files
+ADD jce/* /opt/jdk1.7.0_80/jre/lib/security/
+
 
 ENV X509_CERT_DIR /opt/tomcat/.globus
 ENV CATALINA_OPTS "-Duser.timezone=America/Chicago -Djsse.enableCBCProtection=false -Djava.awt.headless=true -Dfile.encoding=UTF-8 -server -Xms512m -Xmx1024m -XX:+DisableExplicitGC -Djava.security.egd=file:/dev/./urandom"
