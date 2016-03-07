@@ -71,7 +71,6 @@
                executor="tomcatThreadPool"
                port="80"
                maxHttpHeaderSize="32768"
-               bufferSize="32768"
                redirectPort="443"
                compression="on"
                disableUploadTimeout="true"
@@ -101,7 +100,6 @@
                     protocol="org.apache.coyote.http11.Http11AprProtocol"
                     port="443"
                     maxHttpHeaderSize="32768"
-                    bufferSize="32768"
                     compression="on"
                     connectionTimeout="20000"
                     scheme="https"
@@ -138,6 +136,11 @@
       <!--
       <Cluster className="org.apache.catalina.ha.tcp.SimpleTcpCluster"/>
       -->
+      <!-- Enable mapping of original source request values when running
+           behind a reverse proxy.
+       -->
+      <Valve className="org.apache.catalina.valves.RemoteIpValve" />
+
 
       <!-- The request dumper valve dumps useful debugging information about
            the request and response data received and sent by Tomcat.
@@ -169,7 +172,7 @@
              Documentation at: /docs/config/valve.html -->
         <Valve className="org.apache.catalina.valves.AccessLogValve" directory="logs"
                prefix="access" renameOnRotate="true"
-               pattern="[%{UNIQUE_ID}i] %a %l %u %t &quot;%r&quot; %s %b &quot;%{Referer}i&quot; &quot;%{User-Agent}i&quot;"
+               pattern="[%{UNIQUE_ID}i] %{X-Forwarded-For}i %a %l %u %t &quot;%r&quot; %s %b &quot;%{Referer}i&quot; &quot;%{User-Agent}i&quot;"
                />
 
       </Host>

@@ -12,6 +12,10 @@ else
   echo "No environment config present in /app/config/environment.sh. Reading from container environment"
 fi
 
+#################################################################
+# Configure MySQL jndi connection
+#################################################################
+
 if [[ -z "$MYSQL_HOST" ]]; then
   MYSQL_HOST=mysql
 fi
@@ -50,6 +54,10 @@ do
   sed -i -e "s/%MYSQL_DATABASE%/$MYSQL_DATABASE/" $i
 done
 
+#################################################################
+# Enable/disable Tomcat manager
+#################################################################
+
 # Enable Tomcat Manager if a valid key was passed in
 if [[ -n "$ENABLE_TOMCAT_MANAGER" ]]; then
   if [[ -z "$TOMCAT_MANGER_USERNAME" ]]; then
@@ -70,12 +78,9 @@ else
 
 fi
 
-
-# if [[ -e /etc/apache2/conf.d/ssl.conf.bak ]]; then
-#   cp /etc/apache2/conf.d/ssl.conf.bak /etc/apache2/conf.d/ssl.conf
-# else
-#   cp /etc/apache2/conf.d/ssl.conf /etc/apache2/conf.d/ssl.conf.bak
-# fi
+#################################################################
+# Configure ssl certs to use mounted files or the container defaults
+#################################################################
 
 if [[ -z "$SSL_KEY" ]]; then
 	export KEY=/etc/ssl/private/server.key
@@ -96,17 +101,13 @@ emailAddress=admin@$DOMAIN"
 	openssl x509 -req -days 365 -in /etc/ssl/certs/$DOMAIN.csr -signkey $KEY -out /etc/ssl/certs/server.crt
 fi
 
-#export SSL_CERT=we_done_switched_the_ssl_cert
 if [[ -n "$SSL_CERT" ]]; then
   sed -i 's#SSLCertificateFile=".*#SSLCertificateFile="'$SSL_CERT'"#g' /opt/tomcat/conf/server.xml
 fi
-#grep "we_done_switched_the_ssl_cert" /etc/apache2/conf.d/ssl.conf
 
-# export SSL_KEY=we_done_switched_the_ssl_key
 if [[ -n "$SSL_KEY" ]]; then
   sed -i 's#SSLCertificateKeyFile=".*#SSLCertificateKeyFile="'$SSL_KEY'"#g' /opt/tomcat/conf/server.xml
 fi
-# grep "we_done_switched_the_ssl_key" /etc/apache2/conf.d/ssl.conf
 
 # # export SSL_CA_CHAIN=we_done_switched_the_cert_chain
 # if [[ -n "$SSL_CA_CHAIN" ]]; then
@@ -114,11 +115,13 @@ fi
 # fi
 # grep "we_done_switched_the_cert_chain" /etc/apache2/conf.d/ssl.conf
 
-# export SSL_CA_CERT=we_done_switched_the_ca_cert
 if [[ -n "$SSL_CA_CERT" ]]; then
   sed -i 's#SSLCACertificatePath=".*#SSLCACertificatePath="'$SSL_CA_CERT'"#g' /opt/tomcat/conf/server.xml
 fi
-# grep "we_done_switched_the_ca_cert" /etc/apache2/conf.d/ssl.conf
+
+#################################################################
+# Scratch directory init
+#################################################################
 
 # create the scratch directory
 if [[ -z "$IPLANT_SERVER_TEMP_DIR" ]]; then
@@ -127,10 +130,19 @@ fi
 
 mkdir -p "$IPLANT_SERVER_TEMP_DIR"
 
+#################################################################
+# NTPD init
+#################################################################
+
 # start ntpd because clock skew is astoundingly real
 ntpd -d -p pool.ntp.org
 
-# unpack the zip ourselves. This saves about a minute on startup time
+#################################################################
+# Unpack webapp
+#
+# This saves about a minute on startup time
+#################################################################
+
 WAR_NAME=$(ls $CATALINA_HOME/webapps/*.war 2> /dev/null)
 if [[ -n "$WAR_NAME" ]]; then
 	APP_NAME=$(basename $WAR_NAME | cut -d'.' -f1)
@@ -138,13 +150,48 @@ if [[ -n "$WAR_NAME" ]]; then
 	mkdir "$CATALINA_HOME/webapps/$APP_NAME"
 	unzip -q -o -d "$CATALINA_HOME/webapps/$APP_NAME" "$WAR_NAME"
 	rm -f ${WAR_NAME}
+	echo "...done expanding war"
 else
 	echo "No war found in webapps directory."
 fi
 
+#################################################################
+# Configure logging
+#################################################################
+
+# # Enable logging to std out
+# if [[ -n "$LOG_TARGET_STDOUT" ]]; then
+#   sed -i 's#^log4j.rootCategory=ERROR.*$#log4j.rootCategory=ERROR, C' /etc/apache2/httpd.conf
+#   sed -i 's#^log4j.logger.#CustomLog /proc/self/fd/1 combined#g' /etc/apache2/httpd.conf
+#
+#   sed -i 's#^ErrorLog logs/ssl_error.log#ErrorLog /proc/self/fd/2#g' /etc/apache2/conf.d/ssl.conf
+#   sed -i 's#^TransferLog logs/ssl_access.log#TransferLog /proc/self/fd/1#g' /etc/apache2/conf.d/ssl.conf
+#   sed -i 's#^CustomLog logs/ssl_request.log#CustomLog /proc/self/fd/1#g' /etc/apache2/conf.d/ssl.conf
+# fi
+#
+# # Enable toggling the log level at startup
+# if [[ -n "$LOG_LEVEL_DEBUG" ]]; then
+#   LOG_LEVEL=debug
+# elif [[ -n "$LOG_LEVEL_INFO" ]]; then
+#   LOG_LEVEL=info
+# elif [[ -n "$LOG_LEVEL_ERROR" ]]; then
+#   LOG_LEVEL=error
+# else
+#   LOG_LEVEL=warn
+# fi
+#
+# sed -i 's#^log4j.logger.org.iplantc.service=DEBUG#log4j.logger.org.iplantc.service='$LOG_LEVEL'#g' $CATALINA_HOME/webapps/*/WEB-INF/classes/log4j.properties
+# sed -i 's#^LogLevel warn#LogLevel '$LOG_LEVEL'#g' /etc/apache2/conf.d/ssl.conf
+
+#################################################################
+# Configure NewRelic monitor
+#
 # Enable NewRelic if a valid key was passed in. We move this to the bottom so
 # we can default to the service manifest if no app name was provided.
+#################################################################
+
 if [[ -n "$NEWRELIC_LICENSE_KEY" ]]; then
+	echo "Configuring NewRelic support..."
   sed -i -e "s/%NEWRELIC_LICENSE_KEY%/$NEWRELIC_LICENSE_KEY/" $CATALINA_HOME/newrelic/newrelic.yml
 
 	if [[ -z "$AGAVE_APP_NAME" ]]; then
@@ -165,7 +212,7 @@ if [[ -n "$NEWRELIC_LICENSE_KEY" ]]; then
 	sed -i -e "s/%AGAVE_ENVIRONMENT%/$AGAVE_ENVIRONMENT/" $CATALINA_HOME/newrelic/newrelic.yml
 
 	export CATALINA_OPTS="$CATALINA_OPTS -javaagent:$CATALINA_HOME/newrelic/newrelic.jar"
-
+	echo "...done configuring NewRelic"
 fi
 
 # finally, run the command passed into the container
