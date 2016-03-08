@@ -1,4 +1,5 @@
 #!/bin/bash
+set +e
 
 genpasswd() {
 	local l=$1
@@ -72,10 +73,11 @@ if [[ -n "$ENABLE_TOMCAT_MANAGER" ]]; then
   echo "Tomcat Manager admin user: $TOMCAT_MANGER_USERNAME / $TOMCAT_MANGER_PASSWORD"
 
 else
-
-  rm /opt/tomcat/conf/tomcat-users.xml
-  echo "Tomcat Manager disabled"
-
+  if [[ -e "/opt/tomcat/conf/tomcat-users.xml" ]]
+  then
+      rm /opt/tomcat/conf/tomcat-users.xml
+      echo "Tomcat Manager disabled"
+  fi
 fi
 
 #################################################################
