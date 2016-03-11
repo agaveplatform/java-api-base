@@ -61,7 +61,7 @@ RUN addgroup -g 50 -S tomcat && \
     cd /opt/tomcat/lib && \
     curl -o /opt/tomcat/lib/tomcat-juli-adapters.jar http://apache.mirrors.ionfish.org/tomcat/tomcat-8/v8.0.30/bin/extras/tomcat-juli-adapters.jar && \
     curl -o /opt/tomcat/lib/log4j-1.2.17.jar https://repo.maven.apache.org/maven2/log4j/log4j/1.2.17/log4j-1.2.17.jar && \
-    curl -o /opt/tomcat/bin/tomcat-juli.jar http://apache.mirrors.ionfish.org/tomcat/tomcat-8/v8.0.30/bin/extras/tomcat-juli.jar && \
+    curl -o /opt/tomcat/lib/tomcat-juli.jar http://apache.mirrors.ionfish.org/tomcat/tomcat-8/v8.0.30/bin/extras/tomcat-juli.jar && \
     rm -f /opt/tomcat/conf/logging.properties
 
 # Uncomment for bind util with host, dig, etc ~140MB
