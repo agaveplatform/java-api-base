@@ -46,6 +46,7 @@ elif [[ -z "$MYSQL_DATABASE" ]]; then
 fi
 
 # Update database config
+echo "Updating container mysql connection to jdbc://mysql/${MYSQL_HOST}:${MYSQL_PORT}/${MYSQL_DATABASE}..."
 for i in /opt/tomcat/conf/context.xml;
 do
   sed -i -e "s/%MYSQL_HOST%/$MYSQL_HOST/" $i
@@ -84,6 +85,7 @@ fi
 # Configure ssl certs to use mounted files or the container defaults
 #################################################################
 
+echo "Creating SSL keys for secure communcation..."
 if [[ -z "$SSL_KEY" ]]; then
 	export KEY=/etc/ssl/private/server.key
 	export DOMAIN=$(hostname)
@@ -130,6 +132,7 @@ if [[ -z "$IPLANT_SERVER_TEMP_DIR" ]]; then
 	IPLANT_SERVER_TEMP_DIR=/scratch
 fi
 
+echo "Setting service temp directory to $IPLANT_SERVER_TEMP_DIR..."
 mkdir -p "$IPLANT_SERVER_TEMP_DIR"
 
 #################################################################
@@ -137,7 +140,7 @@ mkdir -p "$IPLANT_SERVER_TEMP_DIR"
 #################################################################
 
 # start ntpd because clock skew is astoundingly real
-ntpd -d -p pool.ntp.org
+ntpd -d -p pool.ntp.org &
 
 #################################################################
 # Unpack webapp
@@ -161,29 +164,33 @@ fi
 # Configure logging
 #################################################################
 
-# # Enable logging to std out
-# if [[ -n "$LOG_TARGET_STDOUT" ]]; then
-#   sed -i 's#^log4j.rootCategory=ERROR.*$#log4j.rootCategory=ERROR, C' /etc/apache2/httpd.conf
-#   sed -i 's#^log4j.logger.#CustomLog /proc/self/fd/1 combined#g' /etc/apache2/httpd.conf
-#
-#   sed -i 's#^ErrorLog logs/ssl_error.log#ErrorLog /proc/self/fd/2#g' /etc/apache2/conf.d/ssl.conf
-#   sed -i 's#^TransferLog logs/ssl_access.log#TransferLog /proc/self/fd/1#g' /etc/apache2/conf.d/ssl.conf
-#   sed -i 's#^CustomLog logs/ssl_request.log#CustomLog /proc/self/fd/1#g' /etc/apache2/conf.d/ssl.conf
-# fi
-#
-# # Enable toggling the log level at startup
-# if [[ -n "$LOG_LEVEL_DEBUG" ]]; then
-#   LOG_LEVEL=debug
-# elif [[ -n "$LOG_LEVEL_INFO" ]]; then
-#   LOG_LEVEL=info
-# elif [[ -n "$LOG_LEVEL_ERROR" ]]; then
-#   LOG_LEVEL=error
-# else
-#   LOG_LEVEL=warn
-# fi
-#
-# sed -i 's#^log4j.logger.org.iplantc.service=DEBUG#log4j.logger.org.iplantc.service='$LOG_LEVEL'#g' $CATALINA_HOME/webapps/*/WEB-INF/classes/log4j.properties
-# sed -i 's#^LogLevel warn#LogLevel '$LOG_LEVEL'#g' /etc/apache2/conf.d/ssl.conf
+# Configure logging output target. Logs to a file unless explicitly
+# configured to send to standard out
+if [[ -n "$LOG_TARGET_STDOUT" ]]; then
+  LOG_TARGET=stdout
+else
+	LOG_TARGET=fileout
+fi
+
+# Enable toggling the log level at startup. DEBUG for all api services
+# by default.
+if [[ -n "$LOG_LEVEL_INFO" ]]; then
+  LOG_LEVEL=INFO
+elif [[ -n "$LOG_LEVEL_ERROR" ]]; then
+  LOG_LEVEL=ERROR
+elif [[ -n "$LOG_LEVEL_WARN" ]]; then
+  LOG_LEVEL=WARN
+elif [[ -n "$LOG_LEVEL_NONE" ]]; then
+  LOG_LEVEL=NONE
+else
+	LOG_LEVEL=DEBUG
+fi
+
+echo "Setting service log level to $LOG_LEVEL..."
+sed -i 's#^agaveLogLevel=.*#agaveLogLevel='$LOG_LEVEL'#g' $CATALINA_HOME/webapps/*/WEB-INF/classes/log4j.properties
+
+echo "Setting service log target to $LOG_TARGET..."
+sed -i 's#^logTarget=.*$#^logTarget='$LOG_TARGET'#g' $CATALINA_HOME/webapps/*/WEB-INF/classes/log4j.properties
 
 #################################################################
 # Configure NewRelic monitor
@@ -193,7 +200,7 @@ fi
 #################################################################
 
 if [[ -n "$NEWRELIC_LICENSE_KEY" ]]; then
-	echo "Configuring NewRelic support..."
+	echo "Configuring New Relic support..."
   sed -i -e "s/%NEWRELIC_LICENSE_KEY%/$NEWRELIC_LICENSE_KEY/" $CATALINA_HOME/newrelic/newrelic.yml
 
 	if [[ -z "$AGAVE_APP_NAME" ]]; then
