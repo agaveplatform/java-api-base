@@ -224,5 +224,9 @@ if [[ -n "$NEWRELIC_LICENSE_KEY" ]]; then
 	echo "...done configuring NewRelic"
 fi
 
+if [[ -z "JAVA_OPTS" ]]; then
+	export JAVA_OPTS="-Duser.timezone=America/Chicago"
+fi
+
 # finally, run the command passed into the container
 exec "$@"
