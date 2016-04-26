@@ -29,9 +29,7 @@ RUN addgroup -g 50 -S tomcat && \
     rm tomcat-native.tar.gz && \
     cd $CATALINA_HOME/bin/tomcat-native-1.1.33-src/jni/native/ && \
     ./configure --with-apr=/usr/bin/apr-1-config --with-java-home=$JAVA_HOME  --with-ssl=yes --prefix=/usr && \
-    make
-
-RUN \
+    make && \
     cd $CATALINA_HOME/bin/tomcat-native-1.1.33-src/jni/native/ && \
     make install && \
     cd / && \
@@ -65,7 +63,7 @@ RUN \
     curl -o /opt/tomcat/lib/tomcat-juli-adapters.jar http://central.maven.org/maven2/org/apache/tomcat/extras/tomcat-extras-juli-adapters/8.0.30/tomcat-extras-juli-adapters-8.0.30.jar && \
     curl -o /opt/tomcat/lib/log4j-1.2.17.jar https://repo.maven.apache.org/maven2/log4j/log4j/1.2.17/log4j-1.2.17.jar && \
     curl -o /opt/tomcat/lib/tomcat-juli.jar http://central.maven.org/maven2/org/apache/tomcat/extras/tomcat-extras-juli/8.0.30/tomcat-extras-juli-8.0.30.jar && \
-    rm -f /opt/tomcat/conf/logging.properties
+    rm -f /opt/tomcat/conf/logging.properties && \
 
 # Uncomment for bind util with host, dig, etc ~140MB
 #RUN apk add -U alpine-sdk linux-headers \
@@ -85,7 +83,7 @@ RUN \
 # Uncomment for newrelic support...should install logrotate as well or disable logging.
 #RUN  sysctl -p && \
 #     apk install curl unzip - && \
-RUN cd /opt/tomcat/ && \
+    cd /opt/tomcat/ && \
     curl -O "http://download.newrelic.com/newrelic/java-agent/newrelic-agent/current/newrelic-java.zip" && \
     unzip newrelic-java.zip && \
     rm newrelic-java.zip
