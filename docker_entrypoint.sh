@@ -190,7 +190,7 @@ echo "Setting service log level to $LOG_LEVEL..."
 sed -i 's#^agaveLogLevel=.*#agaveLogLevel='$LOG_LEVEL'#g' $CATALINA_HOME/webapps/*/WEB-INF/classes/log4j.properties
 
 echo "Setting service log target to $LOG_TARGET..."
-sed -i 's#^logTarget=.*$#^logTarget='$LOG_TARGET'#g' $CATALINA_HOME/webapps/*/WEB-INF/classes/log4j.properties
+sed -i 's#^logTarget=.*$#logTarget='$LOG_TARGET'#g' $CATALINA_HOME/webapps/*/WEB-INF/classes/log4j.properties
 
 #################################################################
 # Configure NewRelic monitor
@@ -222,10 +222,6 @@ if [[ -n "$NEWRELIC_LICENSE_KEY" ]]; then
 
 	export CATALINA_OPTS="$CATALINA_OPTS -javaagent:$CATALINA_HOME/newrelic/newrelic.jar"
 	echo "...done configuring NewRelic"
-fi
-
-if [[ -z "JAVA_OPTS" ]]; then
-	export JAVA_OPTS="-Duser.timezone=America/Chicago"
 fi
 
 # finally, run the command passed into the container

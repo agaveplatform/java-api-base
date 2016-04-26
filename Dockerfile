@@ -29,15 +29,18 @@ RUN addgroup -g 50 -S tomcat && \
     rm tomcat-native.tar.gz && \
     cd $CATALINA_HOME/bin/tomcat-native-1.1.33-src/jni/native/ && \
     ./configure --with-apr=/usr/bin/apr-1-config --with-java-home=$JAVA_HOME  --with-ssl=yes --prefix=/usr && \
-    make && \
+    make
+
+RUN \
+    cd $CATALINA_HOME/bin/tomcat-native-1.1.33-src/jni/native/ && \
     make install && \
     cd / && \
-    curl -O http://www.us.apache.org/dist//ant/binaries/apache-ant-1.9.6-bin.tar.gz && \
-    tar xzf apache-ant-1.9.6-bin.tar.gz && \
+    curl -O http://archive.apache.org/dist/ant/binaries/apache-ant-1.9.7-bin.tar.gz && \
+    tar xzf apache-ant-1.9.7-bin.tar.gz && \
     cd $CATALINA_HOME/bin/tomcat-native-*-src/jni && \
-    /apache-ant-1.9.6/bin/ant download && \
-    /apache-ant-1.9.6/bin/ant && \
-    /apache-ant-1.9.6/bin/ant jar && \
+    /apache-ant-1.9.7/bin/ant download && \
+    /apache-ant-1.9.7/bin/ant && \
+    /apache-ant-1.9.7/bin/ant jar && \
     cp dist/tomcat-native-*.jar $CATALINA_HOME/lib/ && \
 
     # Set up system timezone and ntpd
@@ -50,7 +53,7 @@ RUN addgroup -g 50 -S tomcat && \
     mkdir -p /opt/tomcat/logs && \
     rm -rf /opt/tomcat/bin/tomcat-native-*-src && \
     apk del apr-dev openssl-dev build-base && rm -f /var/cache/apk/* && \
-    rm -rf /apache-ant-1.9.6* && \
+    rm -rf /apache-ant-1.9.7* && \
     ln -s /lib/libuuid.so.1 /usr/lib/libuuid.so.1 && \
     rm -rf /opt/tomcat/webapps/* && \
 
@@ -59,9 +62,9 @@ RUN addgroup -g 50 -S tomcat && \
 
     # switch to log4j logging throughout Tomcat
     cd /opt/tomcat/lib && \
-    curl -o /opt/tomcat/lib/tomcat-juli-adapters.jar http://apache.mirrors.ionfish.org/tomcat/tomcat-8/v8.0.30/bin/extras/tomcat-juli-adapters.jar && \
+    curl -o /opt/tomcat/lib/tomcat-juli-adapters.jar http://central.maven.org/maven2/org/apache/tomcat/extras/tomcat-extras-juli-adapters/8.0.30/tomcat-extras-juli-adapters-8.0.30.jar && \
     curl -o /opt/tomcat/lib/log4j-1.2.17.jar https://repo.maven.apache.org/maven2/log4j/log4j/1.2.17/log4j-1.2.17.jar && \
-    curl -o /opt/tomcat/lib/tomcat-juli.jar http://apache.mirrors.ionfish.org/tomcat/tomcat-8/v8.0.30/bin/extras/tomcat-juli.jar && \
+    curl -o /opt/tomcat/lib/tomcat-juli.jar http://central.maven.org/maven2/org/apache/tomcat/extras/tomcat-extras-juli/8.0.30/tomcat-extras-juli-8.0.30.jar && \
     rm -f /opt/tomcat/conf/logging.properties
 
 # Uncomment for bind util with host, dig, etc ~140MB
@@ -100,9 +103,9 @@ ADD jce/* /opt/jdk1.7.0_80/jre/lib/security/
 
 
 ENV X509_CERT_DIR /opt/tomcat/.globus
-ENV CATALINA_OPTS "-Duser.timezone=America/Chicago -Djsse.enableCBCProtection=false -Djava.awt.headless=true -Dfile.encoding=UTF-8 -server -Xms512m -Xmx1024m -XX:+DisableExplicitGC -Djava.security.egd=file:/dev/./urandom"
+ENV CATALINA_OPTS "-Duser.timezone=America/Chicago -Djsse.enableCBCProtection=false -Djava.awt.headless=true -Dfile.encoding=UTF-8 -server -Xms512m -Xmx1024m -XX:+DisableExplicitGC -Djava.security.egd=file:/dev/urandom"
 ENV PATH $PATH:/opt/tomcat/bin
-
+ENV JAVA_OPTS "-Duser.timezone=America/Chicago"
 
 WORKDIR /opt/tomcat
 
