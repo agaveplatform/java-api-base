@@ -172,7 +172,7 @@
              Documentation at: /docs/config/valve.html -->
         <Valve className="org.apache.catalina.valves.AccessLogValve" directory="logs"
                prefix="access" renameOnRotate="true"
-               pattern="[%{UNIQUE_ID}i] %{X-Forwarded-For}i %h %l %u %t &quot;%r&quot; %>s %T %D %b &quot;%{Referer}i&quot; &quot;%{User-Agent}i&quot;"/>
+               pattern="[%{UNIQUE_ID}i] %{X-Forwarded-For}i %l %u %t &quot;%r&quot; %s %D %b &quot;%{Referer}i&quot; &quot;%{User-Agent}i&quot;"/>
 
       </Host>
     </Engine>
