@@ -224,5 +224,14 @@ if [[ -n "$NEWRELIC_LICENSE_KEY" ]]; then
 	echo "...done configuring NewRelic"
 fi
 
+#################################################################
+# Hibernate caching
+#################################################################
+ 
+if [[ -n "$HIBERNATE_CACHE_USE_SECOND_LEVEL_CACHE" ]]; then
+  echo "Enabling hibernate second level caching..."
+  sed -i 's#hibernate.cache.use_second_level_cache">false<#hibernate.cache.use_second_level_cache">true<#g' $CATALINA_HOME/webapps/*/WEB-INF/classes/hibernate.cfg.xml
+fi
+
 # finally, run the command passed into the container
 exec "$@"
