@@ -53,7 +53,7 @@ RUN addgroup -g 50 -S tomcat && \
     apk del apr-dev openssl-dev build-base && rm -f /var/cache/apk/* && \
     rm -rf /apache-ant-1.9.7* && \
     ln -s /lib/libuuid.so.1 /usr/lib/libuuid.so.1 && \
-    rm -rf /opt/tomcat/webapps/* && \
+    rm -rf /opt/tomcat/webapps/ROOT /opt/tomcat/webapps/docs && \
 
     # Add mysql connector library to default tomcat install
     curl -o /opt/tomcat/lib/mysql-connector-java-5.1.38.jar http://central.maven.org/maven2/mysql/mysql-connector-java/5.1.38/mysql-connector-java-5.1.38.jar && \
@@ -86,9 +86,14 @@ RUN addgroup -g 50 -S tomcat && \
     cd /opt/tomcat/ && \
     curl -O "http://download.newrelic.com/newrelic/java-agent/newrelic-agent/current/newrelic-java.zip" && \
     unzip newrelic-java.zip && \
-    rm newrelic-java.zip
-    # && cd newrelic && \
-    # java -jar newrelic.jar install
+    rm newrelic-java.zip && \
+
+    # Enable JMX and RMI
+    cd /opt/tomcat/lib && \
+    wget http://mirror.symnds.com/software/Apache/tomcat/tomcat-8/v8.0.36/bin/extras/catalina-ws.jar && \
+    wget http://mirror.symnds.com/software/Apache/tomcat/tomcat-8/v8.0.36/bin/extras/catalina-jmx-remote.jar && \
+    apk add --update pwgen && \
+    rm -rf /var/cache/apk/* /tmp/* /var/tmp/*
 
 # Install Tomcat config files for JNDI and better file upload/throughput
 ADD tomcat/conf/* /opt/tomcat/conf/
@@ -103,7 +108,7 @@ ADD jce/* /opt/jdk1.7.0_80/jre/lib/security/
 ENV X509_CERT_DIR /opt/tomcat/.globus
 ENV CATALINA_OPTS "-Duser.timezone=America/Chicago -Djsse.enableCBCProtection=false -Djava.awt.headless=true -Dfile.encoding=UTF-8 -server -Xms512m -Xmx1024m -XX:+DisableExplicitGC -XX:+UseSerialGC -XX:MinHeapFreeRatio=5 -XX:MaxHeapFreeRatio=10 -Djava.security.egd=file:/dev/urandom"
 ENV PATH $PATH:/opt/tomcat/bin
-ENV JAVA_OPTS "-Duser.timezone=America/Chicago"
+ENV JAVA_OPTS "-Duser.timezone=America/Chicago -Dfile.encoding=UTF-8"
 
 WORKDIR /opt/tomcat
 
@@ -111,7 +116,8 @@ VOLUME [ "/opt/tomcat/.globus" ]
 VOLUME [ "/scratch" ]
 VOLUME [ "/opt/tomcat/logs" ]
 
-EXPOSE 80 443 8009
+# http, https, ajp, jmx admin, jmx rmi, jpda debugging
+EXPOSE 80 443 8009 10001 10002 52911
 
 ENTRYPOINT ["/docker_entrypoint.sh"]
 

@@ -33,10 +33,10 @@
     -->
   <Resource name="jdbc/iplant_io"
           auth="Container"
-          username="%MYSQL_USERNAME%"
-          password="%MYSQL_PASSWORD%"
+          username="agaveuser"
+          password="password"
           driverClassName="com.mysql.jdbc.Driver"
-          url="jdbc:mysql://%MYSQL_HOST%:%MYSQL_PORT%/%MYSQL_DATABASE%"
+          url="jdbc:mysql://mysql.example.com:3306/agavecore"
           connectionProperties="zeroDateTimeBehavior=convertToNull;sessionVariables=FOREIGN_KEY_CHECKS=0;relaxAutoCommit=true;tinyInt1isBit=false"
           type="javax.sql.DataSource"
           factory="org.apache.tomcat.jdbc.pool.DataSourceFactory"

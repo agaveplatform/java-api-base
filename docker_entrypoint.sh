@@ -8,9 +8,8 @@ genpasswd() {
 }
 
 if [[ -f "/app/config/environment.sh" ]]; then
-  source /app/config/environment.sh
-else
-  echo "No environment config present in /app/config/environment.sh. Reading from container environment"
+  echo "=> Sourcing environment file found at /app/config/environment.sh"
+	source /app/config/environment.sh
 fi
 
 #################################################################
@@ -46,7 +45,7 @@ elif [[ -z "$MYSQL_DATABASE" ]]; then
 fi
 
 # Update database config
-echo "Updating container mysql connection to jdbc://mysql/${MYSQL_HOST}:${MYSQL_PORT}/${MYSQL_DATABASE}..."
+echo "=> Setting container mysql connection to jdbc://mysql/${MYSQL_HOST}:${MYSQL_PORT}/${MYSQL_DATABASE}..."
 for i in /opt/tomcat/conf/context.xml;
 do
   sed -i -e "s/%MYSQL_HOST%/$MYSQL_HOST/" $i
@@ -56,36 +55,36 @@ do
   sed -i -e "s/%MYSQL_DATABASE%/$MYSQL_DATABASE/" $i
 done
 
-#################################################################
-# Enable/disable Tomcat manager
-#################################################################
-
-# Enable Tomcat Manager if a valid key was passed in
-if [[ -n "$ENABLE_TOMCAT_MANAGER" ]]; then
-  if [[ -z "$TOMCAT_MANGER_USERNAME" ]]; then
-    TOMCAT_MANGER_USERNAME=admin
-  fi
-
-  if [[ -z "$TOMCAT_MANGER_PASSWORD" ]]; then
-    TOMCAT_MANGER_PASSWORD=$(genpasswd)
-  fi
-
-  sed -i 's#<user name="admin" password="admin"#<user name="'$TOMCAT_MANGER_USERNAME'" password="'$TOMCAT_MANGER_PASSWORD'"#g' /opt/tomcat/conf/tomcat-users.xsd
-  echo "Tomcat Manager admin user: $TOMCAT_MANGER_USERNAME / $TOMCAT_MANGER_PASSWORD"
-
-else
-  if [[ -e "/opt/tomcat/conf/tomcat-users.xml" ]]
-  then
-      rm /opt/tomcat/conf/tomcat-users.xml
-      echo "Tomcat Manager disabled"
-  fi
-fi
+# #################################################################
+# # Enable/disable Tomcat manager
+# #################################################################
+#
+# # Enable Tomcat Manager if a valid key was passed in
+# if [[ -n "$ENABLE_TOMCAT_MANAGER" ]]; then
+#   if [[ -z "$TOMCAT_MANGER_USERNAME" ]]; then
+#     TOMCAT_MANGER_USERNAME=admin
+#   fi
+#
+#   if [[ -z "$TOMCAT_MANGER_PASSWORD" ]]; then
+#     TOMCAT_MANGER_PASSWORD=$(genpasswd)
+#   fi
+#
+#   sed -i 's#<user name="admin" password="admin"#<user name="'$TOMCAT_MANGER_USERNAME'" password="'$TOMCAT_MANGER_PASSWORD'"#g' /opt/tomcat/conf/tomcat-users.xsd
+#   echo "Tomcat Manager admin user: $TOMCAT_MANGER_USERNAME / $TOMCAT_MANGER_PASSWORD"
+#
+# else
+#   if [[ -e "/opt/tomcat/conf/tomcat-users.xml" ]]
+#   then
+#       rm /opt/tomcat/conf/tomcat-users.xml
+#       echo "Tomcat Manager disabled"
+#   fi
+# fi
 
 #################################################################
 # Configure ssl certs to use mounted files or the container defaults
 #################################################################
 
-echo "Creating SSL keys for secure communcation..."
+echo "=> Creating SSL keys for secure communcation..."
 if [[ -z "$SSL_KEY" ]]; then
 	export KEY=/etc/ssl/private/server.key
 	export DOMAIN=$(hostname)
@@ -132,7 +131,7 @@ if [[ -z "$IPLANT_SERVER_TEMP_DIR" ]]; then
 	IPLANT_SERVER_TEMP_DIR=/scratch
 fi
 
-echo "Setting service temp directory to $IPLANT_SERVER_TEMP_DIR..."
+echo "=> Setting service temp directory to $IPLANT_SERVER_TEMP_DIR..."
 mkdir -p "$IPLANT_SERVER_TEMP_DIR"
 
 #################################################################
@@ -151,13 +150,13 @@ ntpd -d -p pool.ntp.org &
 WAR_NAME=$(ls $CATALINA_HOME/webapps/*.war 2> /dev/null)
 if [[ -n "$WAR_NAME" ]]; then
 	APP_NAME=$(basename $WAR_NAME | cut -d'.' -f1)
-	echo "expanding war ${WAR_NAME}..."
+	echo "=> Expanding service war ${WAR_NAME}..."
 	mkdir "$CATALINA_HOME/webapps/$APP_NAME"
 	unzip -q -o -d "$CATALINA_HOME/webapps/$APP_NAME" "$WAR_NAME"
 	rm -f ${WAR_NAME}
 	echo "...done expanding war"
 else
-	echo "No war found in webapps directory."
+	echo "=> No war found in webapps directory."
 fi
 
 #################################################################
@@ -186,10 +185,10 @@ else
 	LOG_LEVEL=DEBUG
 fi
 
-echo "Setting service log level to $LOG_LEVEL..."
+echo "=> Setting service log level to $LOG_LEVEL..."
 sed -i 's#^agaveLogLevel=.*#agaveLogLevel='$LOG_LEVEL'#g' $CATALINA_HOME/webapps/*/WEB-INF/classes/log4j.properties
 
-echo "Setting service log target to $LOG_TARGET..."
+echo "=> Setting service log target to $LOG_TARGET..."
 sed -i 's#^logTarget=.*$#logTarget='$LOG_TARGET'#g' $CATALINA_HOME/webapps/*/WEB-INF/classes/log4j.properties
 
 #################################################################
@@ -200,7 +199,7 @@ sed -i 's#^logTarget=.*$#logTarget='$LOG_TARGET'#g' $CATALINA_HOME/webapps/*/WEB
 #################################################################
 
 if [[ -n "$NEWRELIC_LICENSE_KEY" ]]; then
-	echo "Configuring New Relic support..."
+	echo "=> Enabling New Relic support..."
   sed -i -e "s/%NEWRELIC_LICENSE_KEY%/$NEWRELIC_LICENSE_KEY/" $CATALINA_HOME/newrelic/newrelic.yml
 
 	if [[ -z "$AGAVE_APP_NAME" ]]; then
@@ -227,11 +226,83 @@ fi
 #################################################################
 # Hibernate caching
 #################################################################
- 
+
 if [[ -n "$HIBERNATE_CACHE_USE_SECOND_LEVEL_CACHE" ]]; then
-  echo "Enabling hibernate second level caching..."
+  echo "=> Enabling hibernate second level caching..."
   sed -i 's#hibernate.cache.use_second_level_cache">false<#hibernate.cache.use_second_level_cache">true<#g' $CATALINA_HOME/webapps/*/WEB-INF/classes/hibernate.cfg.xml
 fi
+
+if [[ -n "$ENABLE_REMOTE_DEBUG" ]]; then
+	echo "=> Enabled remote debugging via JMX"
+	export CATALINA_OPTS="${CATALINA_OPTS} -Xdebug "
+	export JPDA_TRANSPORT=${JPDA_TRANSPORT:-$(echo 'dt_socket')}
+  export JPDA_ADDRESS=52911
+  export JPDA_SUSPEND=${JPDA_SUSPEND:-$(echo 'n')}
+	export ENABLE_JMX=1
+else
+	echo "=> Remote JMX debugging is disabled"
+fi
+
+if [[ -n "$ENABLE_JMX" ]]; then
+	JMX_PASS=${JMX_ADMIN_PASS:-$(pwgen -s 12 1)}
+	JMX_USER=${JMX_ADMIN_USER:-$(echo 'admin')}
+	_word=$( [ ${JMX_ADMIN_PASS} ] && echo "preset" || echo "random" )
+	echo "=> Creating an admin account with a ${_word} password in Tomcat"
+
+	echo "=> Configuring Tomcat manager for new admin account"
+	sed -i -e "s/MANAGER_USER/"$JMX_USER"/" $CATALINA_HOME/conf/tomcat-users.xml
+	sed -i -e "s/MANAGER_PASS/"$JMX_PASS"/" $CATALINA_HOME/conf/tomcat-users.xml
+	sed -i -e "s#<!-- ##" $CATALINA_HOME/conf/tomcat-users.xml
+	sed -i -e "s# -->##" $CATALINA_HOME/conf/tomcat-users.xml
+
+	echo "========================================================================"
+	echo "You can now connect to this Tomcat Manager app at:"
+	echo ""
+	echo "    http://$HOSTNAME/manager/text"
+	echo ""
+	echo "With the credentials $JMX_USER / $JMX_PASS"
+	echo "========================================================================"
+
+	echo "=> Configuring JMX for new admin account"
+	sed -i -e "s/JMX_ADMIN_USER/"$JMX_USER"/" $CATALINA_HOME/conf/jmxremote.password
+	sed -i -e "s/JMX_ADMIN_USER/"$JMX_USER"/" $CATALINA_HOME/conf/jmxremote.access
+	sed -i -e "s/JMX_ADMIN_PASSWORD/"$JMX_PASS"/" $CATALINA_HOME/conf/jmxremote.password
+	sed -i -e "s/JMX_HOSTNAME/"$HOSTNAME"/" $CATALINA_HOME/conf/server.xml
+	sed -i -e "s#<!-- JMX_RMI_LISTENER##" $CATALINA_HOME/conf/server.xml
+	sed -i -e "s#JMX_RMI_LISTENER -->##" $CATALINA_HOME/conf/server.xml
+	
+	echo "========================================================================"
+	echo "You can now connect to this Tomcat server using jmx:"
+	echo ""
+	echo "    service:jmx:rmi://$HOSTNAME:10002/jndi/rmi://$HOSTNAME:10001/jmxrmi "
+	echo ""
+	echo "or through the JMX Proxy Servlet:"
+	echo ""
+	echo "    http://$HOSTNAME/manager/jmxproxy/ "
+	echo ""
+	echo "With the credentials $JMX_USER / $JMX_PASS"
+	echo "========================================================================"
+
+	export CATALINA_OPTS="${CATALINA_OPTS} -Dcom.sun.management.jmxremote.authenticate=true"
+	export CATALINA_OPTS="${CATALINA_OPTS} -Dcom.sun.management.jmxremote.password.file=$CATALINA_HOME/conf/jmxremote.password"
+	export CATALINA_OPTS="${CATALINA_OPTS} -Dcom.sun.management.jmxremote.access.file=$CATALINA_HOME/conf/jmxremote.access"
+	export CATALINA_OPTS="${CATALINA_OPTS} -Dcom.sun.management.jmxremote.ssl=false"
+
+else
+	echo "=> Disabled JMX support"
+fi
+
+
+####################################################################
+#
+# Synchronization and Service Discovery
+#
+# Make sure the system clock is up to data and provide any discovery
+# functions needed to initialize the environment or application.
+#####################################################################
+
+# start ntpd because clock skew is astoundingly real
+ntpd -d -p pool.ntp.org &
 
 # finally, run the command passed into the container
 exec "$@"

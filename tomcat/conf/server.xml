@@ -29,6 +29,10 @@
    <Listener className="org.apache.catalina.core.JreMemoryLeakPreventionListener" />
    <Listener className="org.apache.catalina.mbeans.GlobalResourcesLifecycleListener" />
    <Listener className="org.apache.catalina.core.ThreadLocalLeakPreventionListener" />
+   <!-- JMX_RMI_LISTENER
+   <Listener className="org.apache.catalina.mbeans.JmxRemoteLifecycleListener"
+          rmiRegistryPortPlatform="10001" rmiServerPortPlatform="10002" rmiBindAddress="api"/>
+   JMX_RMI_LISTENER -->
 
   <!-- Global JNDI resources
        Documentation at /docs/jndi-resources-howto.html
@@ -163,8 +167,8 @@
            resources under the key "UserDatabase".  Any edits
            that are performed against this UserDatabase are immediately
            available for use by the Realm.  -->
-      <!-- <Realm className="org.apache.catalina.realm.UserDatabaseRealm"
-             resourceName="UserDatabase"/> -->
+      <Realm className="org.apache.catalina.realm.UserDatabaseRealm"
+             resourceName="UserDatabase"/>
 
       <!-- Define the default virtual host
            Note: XML Schema validation will not work with Xerces 2.2.
