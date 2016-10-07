@@ -37,7 +37,7 @@
           password="%MYSQL_PASSWORD%"
           driverClassName="com.mysql.jdbc.Driver"
           url="jdbc:mysql://%MYSQL_HOST%:%MYSQL_PORT%/%MYSQL_DATABASE%"
-          connectionProperties="zeroDateTimeBehavior=convertToNull;sessionVariables=FOREIGN_KEY_CHECKS=0;relaxAutoCommit=true;tinyInt1isBit=false"
+          connectionProperties="zeroDateTimeBehavior=convertToNull;sessionVariables=FOREIGN_KEY_CHECKS=0;relaxAutoCommit=true;tinyInt1isBit=false;useTimezone=true;serverTimezone=America/Chicago"
           type="javax.sql.DataSource"
           factory="org.apache.tomcat.jdbc.pool.DataSourceFactory"
 
