@@ -90,8 +90,8 @@ RUN addgroup -g 50 -S tomcat && \
 
     # Enable JMX and RMI
     cd /opt/tomcat/lib && \
-    wget http://mirror.symnds.com/software/Apache/tomcat/tomcat-8/v8.0.36/bin/extras/catalina-ws.jar && \
-    wget http://mirror.symnds.com/software/Apache/tomcat/tomcat-8/v8.0.36/bin/extras/catalina-jmx-remote.jar && \
+    wget http://mirror.symnds.com/software/Apache/tomcat/tomcat-8/v8.0.37/bin/extras/catalina-ws.jar && \
+    wget http://mirror.symnds.com/software/Apache/tomcat/tomcat-8/v8.0.37/bin/extras/catalina-jmx-remote.jar && \
     apk add --update pwgen && \
     rm -rf /var/cache/apk/* /tmp/* /var/tmp/*
 
