@@ -1,10 +1,10 @@
 ######################################################
 #
-# Agave Java 7 Tomcat 8 Base Image
+# Agave Java 8 Tomcat 8 Base Image
 # Tag: agaveapi/java-api-base
 #
 # This is the base image for Agave's Java APIs. It
-# contains Java 7, Tomcat 8, implicit CORS support,
+# contains Java 8, Tomcat 8, implicit CORS support,
 # and configs to autowire a MySQL or MariaDB
 # server from the environment.
 #
@@ -13,7 +13,7 @@
 #
 ######################################################
 
-FROM jeanblanchard/tomcat:tomcat8-java7
+FROM jeanblanchard/tomcat:8.0.43-java8
 MAINTAINER Rion Dooley <dooley@tacc.utexas.edu>
 
 ADD tcp/limits.conf /etc/security/limits.conf
@@ -21,21 +21,21 @@ ADD tcp/sysctl.conf /etc/sysctl.conf
 
 RUN addgroup -g 50 -S tomcat && \
     adduser -u 1000 -g tomcat -G tomcat -S tomcat  && \
-    apk --update add bash tzdata apr bash openssl apr-dev openssl-dev build-base && \
+    apk --update add bash tzdata apr openssl apr-dev openssl-dev build-base curl && \
 
     # Build Tomcat APR for native ssl + threading
     cd /opt/tomcat/bin && \
     tar xzf tomcat-native.tar.gz && \
     rm tomcat-native.tar.gz && \
-    cd $CATALINA_HOME/bin/tomcat-native-1.1.33-src/jni/native/ && \
+    cd $CATALINA_HOME/bin/tomcat-native-1.2.12-src/native/ && \
     ./configure --with-apr=/usr/bin/apr-1-config --with-java-home=$JAVA_HOME  --with-ssl=yes --prefix=/usr && \
     make && \
-    cd $CATALINA_HOME/bin/tomcat-native-1.1.33-src/jni/native/ && \
+    cd $CATALINA_HOME/bin/tomcat-native-1.2.12-src/native/ && \
     make install && \
     cd / && \
     curl -O http://archive.apache.org/dist/ant/binaries/apache-ant-1.9.7-bin.tar.gz && \
     tar xzf apache-ant-1.9.7-bin.tar.gz && \
-    cd $CATALINA_HOME/bin/tomcat-native-*-src/jni && \
+    cd $CATALINA_HOME/bin/tomcat-native-1.2.12-src && \
     /apache-ant-1.9.7/bin/ant download && \
     /apache-ant-1.9.7/bin/ant && \
     /apache-ant-1.9.7/bin/ant jar && \
@@ -60,9 +60,9 @@ RUN addgroup -g 50 -S tomcat && \
 
     # switch to log4j logging throughout Tomcat
     cd /opt/tomcat/lib && \
-    curl -o /opt/tomcat/lib/tomcat-juli-adapters.jar http://central.maven.org/maven2/org/apache/tomcat/extras/tomcat-extras-juli-adapters/8.0.30/tomcat-extras-juli-adapters-8.0.30.jar && \
+    curl -o /opt/tomcat/lib/tomcat-juli-adapters.jar http://central.maven.org/maven2/org/apache/tomcat/extras/tomcat-extras-juli-adapters/8.0.43/tomcat-extras-juli-adapters-8.0.43.jar && \
     curl -o /opt/tomcat/lib/log4j-1.2.17.jar https://repo.maven.apache.org/maven2/log4j/log4j/1.2.17/log4j-1.2.17.jar && \
-    curl -o /opt/tomcat/lib/tomcat-juli.jar http://central.maven.org/maven2/org/apache/tomcat/extras/tomcat-extras-juli/8.0.30/tomcat-extras-juli-8.0.30.jar && \
+    curl -o /opt/tomcat/lib/tomcat-juli.jar http://central.maven.org/maven2/org/apache/tomcat/extras/tomcat-extras-juli/8.0.43/tomcat-extras-juli-8.0.43.jar && \
     rm -f /opt/tomcat/conf/logging.properties && \
 
 # Uncomment for bind util with host, dig, etc ~140MB
@@ -90,8 +90,8 @@ RUN addgroup -g 50 -S tomcat && \
 
     # Enable JMX and RMI
     cd /opt/tomcat/lib && \
-    wget http://mirror.symnds.com/software/Apache/tomcat/tomcat-8/v8.0.37/bin/extras/catalina-ws.jar && \
-    wget http://mirror.symnds.com/software/Apache/tomcat/tomcat-8/v8.0.37/bin/extras/catalina-jmx-remote.jar && \
+    wget http://apache.cs.utah.edu/tomcat/tomcat-8/v8.0.43/bin/extras/catalina-ws.jar && \
+    wget http://apache.cs.utah.edu/tomcat/tomcat-8/v8.0.43/bin/extras/catalina-jmx-remote.jar && \
     apk add --update pwgen && \
     rm -rf /var/cache/apk/* /tmp/* /var/tmp/*
 
@@ -101,12 +101,15 @@ ADD tomcat/lib/log4j.properties /opt/tomcat/lib/log4j.properties
 ADD docker_entrypoint.sh /docker_entrypoint.sh
 ADD newrelic.yml /opt/tomcat/newrelic/newrelic.yml
 
-# Add JCE Unlimited strength policy files
-ADD jce/* /opt/jdk1.7.0_80/jre/lib/security/
+# Add JCE Unlimited strength policy files from the subdirectory on the build machine.
+# Automating this process without prepositioning of the JCE jar files is difficult
+# because downloads require accepting a license agreement.  Make sure you use the 
+# JCE files for the Java version. 
+ADD jce/* /opt/jdk/jre/lib/security/
 
 
 ENV X509_CERT_DIR /opt/tomcat/.globus
-ENV CATALINA_OPTS "-Duser.timezone=America/Chicago -Djsse.enableCBCProtection=false -Djava.awt.headless=true -Dfile.encoding=UTF-8 -server -Xms512m -Xmx1024m -XX:+DisableExplicitGC -XX:+UseSerialGC -XX:MinHeapFreeRatio=5 -XX:MaxHeapFreeRatio=10 -Djava.security.egd=file:/dev/urandom"
+ENV CATALINA_OPTS "-Duser.timezone=America/Chicago -Djsse.enableCBCProtection=false -Djava.awt.headless=true -Dfile.encoding=UTF-8 -server -Xms512m -Xmx1024m -XX:+DisableExplicitGC -XX:MinHeapFreeRatio=5 -XX:MaxHeapFreeRatio=10 -Djava.security.egd=file:/dev/urandom"
 ENV PATH $PATH:/opt/tomcat/bin
 ENV JAVA_OPTS "-Duser.timezone=America/Chicago -Dfile.encoding=UTF-8"
 
