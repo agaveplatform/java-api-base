@@ -8,6 +8,11 @@
 # and configs to autowire a MySQL or MariaDB
 # server from the environment.
 #
+# It can be built from its root directory with the following
+# to give it the 8.0.43-java8 tag:
+#
+#   docker build -t agaveapi/java-api-base:8.0.43-java8 .
+#
 # https://bitbucket.org/agaveapi/java-api-base
 # http://agaveapi.co
 #
