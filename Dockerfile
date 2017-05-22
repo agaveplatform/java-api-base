@@ -114,7 +114,7 @@ ADD jce/* /opt/jdk/jre/lib/security/
 
 
 ENV X509_CERT_DIR /opt/tomcat/.globus
-ENV CATALINA_OPTS "-Duser.timezone=America/Chicago -Djsse.enableCBCProtection=false -Djava.awt.headless=true -Dfile.encoding=UTF-8 -server -Xms512m -Xmx1024m -XX:+DisableExplicitGC -XX:MinHeapFreeRatio=5 -XX:MaxHeapFreeRatio=10 -Djava.security.egd=file:/dev/urandom"
+ENV CATALINA_OPTS "-Duser.timezone=America/Chicago -Djsse.enableCBCProtection=false -Djava.awt.headless=true -Dfile.encoding=UTF-8 -server -Xms1024m -Xmx1024m -XX:+DisableExplicitGC -Djava.security.egd=file:/dev/urandom"
 ENV PATH $PATH:/opt/tomcat/bin
 ENV JAVA_OPTS "-Duser.timezone=America/Chicago -Dfile.encoding=UTF-8"
 
