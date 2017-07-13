@@ -60,9 +60,6 @@ RUN addgroup -g 50 -S tomcat && \
     ln -s /lib/libuuid.so.1 /usr/lib/libuuid.so.1 && \
     rm -rf /opt/tomcat/webapps/ROOT /opt/tomcat/webapps/docs && \
 
-    # Add mysql connector library to default tomcat install
-    curl -o /opt/tomcat/lib/mysql-connector-java-5.1.38.jar http://central.maven.org/maven2/mysql/mysql-connector-java/5.1.38/mysql-connector-java-5.1.38.jar && \
-
     # switch to log4j logging throughout Tomcat
     cd /opt/tomcat/lib && \
     curl -o /opt/tomcat/lib/tomcat-juli-adapters.jar http://central.maven.org/maven2/org/apache/tomcat/extras/tomcat-extras-juli-adapters/8.0.43/tomcat-extras-juli-adapters-8.0.43.jar && \
@@ -95,14 +92,15 @@ RUN addgroup -g 50 -S tomcat && \
 
     # Enable JMX and RMI
     cd /opt/tomcat/lib && \
-    wget http://apache.cs.utah.edu/tomcat/tomcat-8/v8.0.43/bin/extras/catalina-ws.jar && \
-    wget http://apache.cs.utah.edu/tomcat/tomcat-8/v8.0.43/bin/extras/catalina-jmx-remote.jar && \
+    wget http://apache.cs.utah.edu/tomcat/tomcat-8/v8.0.45/bin/extras/catalina-ws.jar && \
+    wget http://apache.cs.utah.edu/tomcat/tomcat-8/v8.0.45/bin/extras/catalina-jmx-remote.jar && \
     apk add --update pwgen && \
     rm -rf /var/cache/apk/* /tmp/* /var/tmp/*
 
 # Install Tomcat config files for JNDI and better file upload/throughput
 ADD tomcat/conf/* /opt/tomcat/conf/
 ADD tomcat/lib/log4j.properties /opt/tomcat/lib/log4j.properties
+ADD lib/* /opt/tomcat/lib/
 ADD docker_entrypoint.sh /docker_entrypoint.sh
 ADD newrelic.yml /opt/tomcat/newrelic/newrelic.yml
 

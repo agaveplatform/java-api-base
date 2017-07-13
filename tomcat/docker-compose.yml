@@ -1,0 +1,15 @@
+
+tomcat:
+  image: agaveapi/java-api-base:8.0.43-java8-hikaricp
+  hostname: docker.example.com
+  ports:
+    - "8888:8080"
+#  volumes:
+#    - "./tomcat/conf/context.xml:/opt/apache-tomcat-8.0.43/conf/context.xml"
+
+  environment:
+      - "MYSQL_HOST=agave-dbs-staging.tacc.utexas.edu"
+      - "MYSQL_PORT=3301"
+      - "MYSQL_USERNAME=agaveapi"
+      - "MYSQL_PASSWORD=d3f@ult$$"
+      - "MYSQL_DATABASE=agave-api"

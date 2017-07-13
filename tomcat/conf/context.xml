@@ -22,15 +22,29 @@
     <WatchedResource>WEB-INF/web.xml</WatchedResource>
 
     <!-- Uncomment this to disable session persistence across Tomcat restarts -->
-    <Manager pathname="" />
+    <Manager pathname=""/>
 
-    <JarScanner scanClassPath="false" />
+    <JarScanner scanClassPath="false"/>
 
     <!-- Uncomment this to enable Comet connection tacking (provides events
          on session expiration as well as webapp lifecycle) -->
     <!--
     <Valve className="org.apache.catalina.valves.CometConnectionManagerValve" />
     -->
+    <Resource name="jdbc/iplant_io" auth="Container"
+              factory="com.zaxxer.hikari.HikariJNDIFactory"
+              type="javax.sql.DataSource"
+              minimumIdle="1"
+              maximumPoolSize="10"
+              connectionTimeout="300000"
+              dataSourceClassName="org.mariadb.jdbc.MariaDbDataSource"
+              dataSource.serverName="%MYSQL_HOST%"
+              dataSource.port="%MYSQL_PORT%"
+              dataSource.databaseName="%MYSQL_DATABASE%"
+              dataSource.user="%MYSQL_USERNAME%"
+              dataSource.password="%MYSQL_PASSWORD%"/>
+
+    <!--
   <Resource name="jdbc/iplant_io"
           auth="Container"
           username="%MYSQL_USERNAME%"
@@ -64,5 +78,6 @@
           useUnicode="true"
           characterEncoding="utf-8"
           characterSetResults="utf8"/>
+-->
 
 </Context>
