@@ -62,29 +62,8 @@ RUN addgroup -g 50 -S tomcat && \
 
     # switch to log4j logging throughout Tomcat
     cd /opt/tomcat/lib && \
-    curl -o /opt/tomcat/lib/tomcat-juli-adapters.jar http://central.maven.org/maven2/org/apache/tomcat/extras/tomcat-extras-juli-adapters/8.0.43/tomcat-extras-juli-adapters-8.0.43.jar && \
-    curl -o /opt/tomcat/lib/log4j-1.2.17.jar https://repo.maven.apache.org/maven2/log4j/log4j/1.2.17/log4j-1.2.17.jar && \
-    curl -o /opt/tomcat/lib/tomcat-juli.jar http://central.maven.org/maven2/org/apache/tomcat/extras/tomcat-extras-juli/8.0.43/tomcat-extras-juli-8.0.43.jar && \
     rm -f /opt/tomcat/conf/logging.properties && \
 
-# Uncomment for bind util with host, dig, etc ~140MB
-#RUN apk add -U alpine-sdk linux-headers \
-    # && curl ftp://ftp.isc.org/isc/bind9/9.10.2/bind-9.10.2.tar.gz|tar -xzv \
-    # && cd bind-9.10.2 \
-    # && CFLAGS="-static" ./configure --without-openssl --disable-symtable \
-    # && make \
-    # && cp ./bin/dig/dig /usr/bin/ \
-    # && apk del build-base alpine-sdk linux-headers \
-    # && rm -rf bind-9.10.2 \
-    # && rm /var/cache/apk/*
-
-# Uncomment to update uuid generation used on system startup...not recommended unless clustering
-#RUN apk --update add libuuid && rm -f /var/cache/apk/* && \
-#    ln -s /usr/lib/libuuid.so /usr/lib/libuuid.so.1
-
-# Uncomment for newrelic support...should install logrotate as well or disable logging.
-#RUN  sysctl -p && \
-#     apk install curl unzip - && \
     cd /opt/tomcat/ && \
     curl -O "http://download.newrelic.com/newrelic/java-agent/newrelic-agent/current/newrelic-java.zip" && \
     unzip newrelic-java.zip && \
@@ -92,8 +71,6 @@ RUN addgroup -g 50 -S tomcat && \
 
     # Enable JMX and RMI
     cd /opt/tomcat/lib && \
-    wget http://apache.cs.utah.edu/tomcat/tomcat-8/v8.0.45/bin/extras/catalina-ws.jar && \
-    wget http://apache.cs.utah.edu/tomcat/tomcat-8/v8.0.45/bin/extras/catalina-jmx-remote.jar && \
     apk add --update pwgen && \
     rm -rf /var/cache/apk/* /tmp/* /var/tmp/*
 
